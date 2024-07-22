@@ -49,4 +49,4 @@ function mask(str: string, start: number, end?: number, mask = '*') {
   );
 }
 
-export { filter, randomString, uuid, slugify, mask };
+export { filter, mask, randomString, slugify, uuid };

@@ -1,20 +1,33 @@
 <script setup lang="ts">
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  Flex,
-  Form,
-  Table,
-  TableProps,
-} from 'ant-design-vue';
+import { Breadcrumb, BreadcrumbItem, Flex, Form, Table } from 'ant-design-vue';
 import { placementType } from 'ant-design-vue/es/drawer';
-import axios from 'axios';
+import { editIcon } from 'src/assets/icons';
 import { PrimaryButton, SearchInput } from 'src/components';
 import { useSearch } from 'src/composable';
 import { Dialog } from 'src/plugins';
-import { computed, reactive, ref } from 'vue';
-import { usePagination } from 'vue-request';
+import { reactive, ref } from 'vue';
 import CreateDialog from './CreateDeveloperDrawer.vue';
+
+interface filterType {
+  text: string;
+  value: string;
+}
+
+interface TableColumn {
+  title: string;
+  dataIndex: string;
+  width?: string;
+  sorter?: boolean;
+  filters?: filterType;
+}
+
+interface Developer {
+  action?: string;
+  developerName: string;
+  projectAmount: number;
+  totalCommDistribursed: number;
+  totalCommToBeDistribursed: number;
+}
 
 const loading = ref(false);
 const { searchKey } = useSearch();
@@ -26,22 +39,7 @@ const formValue = reactive<{
   },
 });
 
-type APIParams = {
-  results: number;
-  page?: number;
-  sortField?: string;
-  sortOrder?: number;
-  [key: string]: any;
-};
-type APIResult = {
-  results: {
-    gender: 'female' | 'male';
-    name: string;
-    email: string;
-  }[];
-};
-
-const columns = [
+const columns: TableColumn[] = [
   {
     title: 'Action',
     dataIndex: 'action',
@@ -59,60 +57,40 @@ const columns = [
   },
   {
     title: 'Project Amount',
-    dataIndex: 'developerName',
+    dataIndex: 'projectAmount',
     sorter: true,
     width: '22.5%',
   },
   {
     title: 'Total Comm Disbursed',
-    dataIndex: 'developerName',
+    dataIndex: 'totalCommDistribursed',
     sorter: true,
     width: '22.5%',
   },
   {
     title: 'Total Comm to be Disbursed',
-    dataIndex: 'developerName',
+    dataIndex: 'totalCommToBeDistribursed',
     sorter: true,
     width: '22.5%',
   },
 ];
 
-const queryData = (params: APIParams) => {
-  return axios.get<APIResult>('https://randomuser.me/api?noinfo', { params });
-};
-
-const {
-  data: dataSource,
-  run,
-  current,
-  pageSize,
-} = usePagination(queryData, {
-  formatResult: (res) => res.data.results,
-  pagination: {
-    currentKey: 'page',
-    pageSizeKey: 'results',
+const datas: Developer[] = [
+  {
+    action: '',
+    developerName: 'KSL',
+    projectAmount: 10,
+    totalCommDistribursed: 50000,
+    totalCommToBeDistribursed: 1000,
   },
-});
-
-const pagination = computed(() => ({
-  total: 200,
-  current: current.value,
-  pageSize: pageSize.value,
-}));
-
-const handleTableChange: TableProps['onChange'] = (
-  pag: { pageSize: number; current: number },
-  filters: any,
-  sorter: any
-) => {
-  run({
-    results: pag.pageSize,
-    page: pag?.current,
-    sortField: sorter.field,
-    sortOrder: sorter.order,
-    ...filters,
-  });
-};
+  {
+    action: '',
+    developerName: 'Eco World',
+    projectAmount: 8,
+    totalCommDistribursed: 60000,
+    totalCommToBeDistribursed: 500,
+  },
+];
 
 async function showDrawer(position: placementType) {
   Dialog.create({
@@ -138,8 +116,36 @@ async function showDrawer(position: placementType) {
   // await new Promise((resolve) => setTimeout(resolve, 500));
 }
 
+async function showUpdateDrawer(position: placementType) {
+  Dialog.create({
+    title: 'Update Developer',
+    component: CreateDialog,
+    width: 800,
+    bodyStyle: {},
+    headerStyle: {
+      borderTopLeftRadius: '25px',
+      backgroundColor: '#FF9D2D',
+      textAlign: 'center',
+      color: '#FFF !important',
+    },
+    style: { borderTopLeftRadius: '25px' },
+    componentProps: { title: 'test' },
+    placement: position,
+    async onOK(v) {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      // console.log('abc');
+      // console.log(v);
+    },
+  });
+  // await new Promise((resolve) => setTimeout(resolve, 500));
+}
+
 function handleFinish() {
   console.log('state ', formValue);
+}
+
+function numberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 </script>
 
@@ -170,17 +176,24 @@ function handleFinish() {
   </div>
 
   <div>
-    <Table
-      :columns="columns"
-      :row-key="(record) => record.login.uuid"
-      :data-source="dataSource"
-      :pagination="pagination"
-      :loading="loading"
-      @change="handleTableChange"
-    >
+    <Table :columns="columns" :data-source="datas" :loading="loading">
       <template #bodyCell="{ column, text }">
-        <template v-if="column.dataIndex === 'name'">
-          {{ text.first }} {{ text.last }}
+        <template v-if="column.dataIndex === 'action'">
+          <PrimaryButton
+            :icon="editIcon"
+            size="small"
+            style-type="text"
+            placement="bottomRight"
+            @click="showUpdateDrawer('right')"
+          />
+        </template>
+        <template
+          v-if="
+            column.dataIndex === 'totalCommDistribursed' ||
+            column.dataIndex === 'totalCommToBeDistribursed'
+          "
+        >
+          {{ 'RM ' + numberWithCommas(text) }}
         </template>
       </template>
     </Table>

@@ -1,12 +1,13 @@
 import { MiddlewareConsumer, Module, NestModule, Type } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { DeveloperModule } from './developer/developel.module';
 import { GlobalModule } from './global.module';
-import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UserModule } from './user/user.module';
-import { EventEmitterModule } from '@nestjs/event-emitter';
 
 const GlobalGuards: Type[] = [JwtAuthGuard];
 
@@ -53,6 +54,7 @@ const GlobalGuards: Type[] = [JwtAuthGuard];
     GlobalModule,
     EventEmitterModule.forRoot(),
     UserModule,
+    DeveloperModule,
     // WorkerModule,
     // StorageModule,
   ],
